@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNSPECIFIED
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String?        @unique
+  passwordHash    String?        @map("password_hash")
+  displayName     String         @map("display_name")
+  gender          Gender
+  isPremium       Boolean        @default(false) @map("is_premium")
+  isGuest         Boolean        @default(false) @map("is_guest")
+  acceptedTermsAt DateTime?      @map("accepted_terms_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  matchesAsUser1  Match[]        @relation("MatchUser1")
+  matchesAsUser2  Match[]        @relation("MatchUser2")
+  reportsFiled    Report[]       @relation("Reporter")
+  reportsAgainst  Report[]       @relation("ReportedUser")
+  subscriptions   Subscription[]
+  friendLinks     Friendship[]   @relation("UserFriends")
+  friendedBy      Friendship[]   @relation("FriendOf")
+
+  @@map("users")
+}
+
+model Match {
+  id           String    @id @default(cuid())
+  user1Id      String    @map("user1_id")
+  user2Id      String?   @map("user2_id")
+  chatMode     String    @default("VOICE_TEXT") @map("chat_mode")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  endedAt      DateTime? @map("ended_at")
+  isAiFallback Boolean   @default(false) @map("is_ai_fallback")
+  roomId       String?   @map("room_id")
+  user1        User      @relation("MatchUser1", fields: [user1Id], references: [id])
+  user2        User?     @relation("MatchUser2", fields: [user2Id], references: [id])
+
+  @@map("matches")
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  reporterId     String   @map("reporter_id")
+  reportedUserId String   @map("reported_user")
+  reason         String
+  timestamp      DateTime @default(now())
+  reporter       User     @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser   User     @relation("ReportedUser", fields: [reportedUserId], references: [id])
+
+  @@map("reports")
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String   @map("user_id")
+  status               String
+  stripeCustomerId     String?  @map("stripe_customer_id")
+  stripeSubscriptionId String?  @map("stripe_subscription_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  friendId  String   @map("friend_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation("UserFriends", fields: [userId], references: [id])
+  friend    User     @relation("FriendOf", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+  @@map("friendships")
+}
