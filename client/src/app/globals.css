@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #fff8ef;
@@ -9,12 +11,6 @@
   --accent: #ff6b6b;
   --font-manrope: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
   --font-space-grotesk: "Trebuchet MS", "Arial Narrow", "Avenir Next Condensed", sans-serif;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-manrope);
 }
 
 * {
